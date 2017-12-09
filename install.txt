@@ -1,16 +1,12 @@
-# flashing the img
-
-./flash --hostname pi-master --ssid ***REMOVED*** --password ***REMOVED***
-
 # nmap ip
-
-nmap -sP $(ipconfig getifaddr en0)/24 | grep pi-master
+nmap -sP $(ipconfig getifaddr en0)/24 | grep pi-baker
 
 # login
-
 ssh pirate@pi.ip
-password: hypriot
+password: pi
+
 ******
+
 # 1.To install or update nvm, you can use the install script using cURL:
 
 curl -o- https://raw.githubusercontent.com/creationix/nvm/v0.33.6/install.sh | bash
