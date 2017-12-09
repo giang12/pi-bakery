@@ -68,21 +68,15 @@ write_files:
       }
     path: /etc/wpa_supplicant/wpa_supplicant.conf
 
-  - content: |
-      export NVM_DIR=/usr/local/nvm
-      export NPM_CONFIG_PREFIX=/usr/local/node
-      export PATH="/usr/local/node/bin:$PATH"
-
-    path: /opt/nvm/nvm.sh
-
 # These commands will be ran once on first boot only
+bootcmd:
 runcmd:
   # Pickup the hostname changes
   - 'systemctl restart avahi-daemon'
 
-#  # Activate WiFi interface
+  # Activate WiFi interface
   - 'ifup wlan0'
 
-# Automated installation to default location $HOME/n and installation of the latest stable Node.js version:
-  - 'curl -L https://git.io/n-install | bash -s -- -y'
-  
+  # "als"
+  - 'cp "boot/als.sh" "/etc/profile.d"'
+

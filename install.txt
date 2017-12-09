@@ -9,7 +9,11 @@ password: pi
 
 # 1.To install or update nvm, you can use the install script using cURL:
 
-curl -o- https://raw.githubusercontent.com/creationix/nvm/v0.33.6/install.sh | bash
+Before you can use n and any installed Node.js versions, you must open a new terminal tab/window or reload your shell initialization file.
+For instance, if your shell is Bash and you're 
+* on Linux, you'd use `. ~/.bashrc`; 
+* on OSX, you'd use `. ~/.bash_profile`; 
+the installer will tell you the specific file to reload on successful installation.
 
 # 1a.Verify installation
 

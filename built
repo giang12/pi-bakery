@@ -5,4 +5,4 @@ HOSTNAME="pi-baker"
 SSID="***REMOVED***"
 PASS="***REMOVED***"
 
-./flash --bootconf boot/config.txt --userdata boot/user-data --hostname $HOSTNAME --ssid $SSID --password $PASS $(ls | grep hypriotos.*.zip)
+./flash --hostname $HOSTNAME --ssid $SSID --password $PASS --als boot/als.sh --bootconf boot/config.txt --userdata boot/user-data $(ls | grep hypriotos.*.zip)
