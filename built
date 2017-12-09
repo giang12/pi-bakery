@@ -2,18 +2,30 @@
 
 # flashing the img
 TOKEN="${1}"
-HOSTNAME="pi-baker-${2:-0}"
+MASTER_ADD="${2}"
+HOSTNAME="pi-baker-${3:-0}"
 
 SSID="***REMOVED***"
 PASS="***REMOVED***"
 
-if [ -z ${TOKEN} ]; then echo "TOKEN is unset, run \`docker swarm join-token (worker|manager)\` from master node to generate new token"; exit 1; fi
+if [ -z ${TOKEN} ]; then 
+	echo "TOKEN is unset, run \`docker swarm join-token (worker|manager)\` from master node to generate new token"; 
+	echo "it should look like \`SWMTKN-1-5nst1oa4hzvseuu69fs0p7k7v9ivlgijfg5plsx20spyqusizu-0o7aah0h696rpkha7zi05hojs\`"
+	exit 1; 
+fi
+
+if [ -z ${MASTER_ADD} ]; then 
+	echo "MASTER_ADD is unset"; 
+	echo "it should look like \`swarm-master-ip:2377\`"
+	exit 1; 
+fi
 
 echo "Building #${HOSTNAME} (づ ￣ ³￣)づ ⓈⓂⓄⓄⓉⒽ with token: ${TOKEN}"
 
 
-./flash --dockercmd "docker swarm join $TOKEN" --hostname "$HOSTNAME" --ssid "$SSID" --password "$PASS" --als boot/als.sh --bootconf boot/config.txt --userdata boot/user-data "$(ls | grep hypriotos.*.zip)"
+./flash --dockercmd "docker swarm join $TOKEN $MASTER_ADD" --hostname "$HOSTNAME" --ssid "$SSID" --password "$PASS" --als boot/als.sh --bootconf boot/config.txt --userdata boot/user-data "$(ls | grep hypriotos.*.zip)"
 
 
-echo "#${HOSTNAME} (╯°□°)–︻╦╤─ – – –ready!"
+echo "#${HOSTNAME} (╯°□°)–︻╦╤─ – – –ready to join master ${MASTER_ADD}!"
+
 
