@@ -80,3 +80,8 @@ runcmd:
   # "als"
   - 'cp "boot/als.sh" "/etc/profile.d"'
 
+  # joining the swarm as worker|manager
+  #   - docker swarm join --token $(docker swarm join-token -q worker|manager) ip:port
+  #<DOCKER_SWARM_CMD_PLACE_HOLDER> 
+
+

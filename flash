@@ -21,7 +21,9 @@ OPTIONS:
   --device|-d     Choose device to flash to (e.g. 'disk2' for /dev/disk2)
   --userdata|-u   Copy this cloud-init file to /boot/user-data
   --metadata|-m   Copy this cloud-init file to /boot/meta-data
-  --als|-a        als script
+  --als|-a        Als script
+  --dockercmd|-D  Docker command to run on boot
+
 For HypriotOS devices:
 
 The config file device-init.yaml should look like
@@ -69,6 +71,8 @@ do
     --userdata) args="${args}-u ";;
     --metadata) args="${args}-m ";;
     --als) args="${args}-a ";;
+    --dockercmd) args="${args}-D ";;
+
     # pass through anything else
     *) [[ "${arg:0:1}" == "-" ]] || delim="\""
       args="${args}${delim}${arg}${delim} ";;
@@ -77,7 +81,7 @@ done
 # reset the translated args
 eval set -- "$args"
 # now we can process with getopt
-while getopts ":hc:n:s:p:C:l:d:u:m:a:" opt; do
+while getopts ":hc:n:s:p:C:l:d:u:m:a:D:" opt; do
   case $opt in
     h)  usage ;;
     c)  CONFIG_FILE=$OPTARG ;;
@@ -90,6 +94,7 @@ while getopts ":hc:n:s:p:C:l:d:u:m:a:" opt; do
     u)  USER_DATA=$OPTARG ;;
     m)  META_DATA=$OPTARG ;;
     a)  ALS_SH=$OPTARG ;;
+    D)  DOCKER_CMD=$OPTARG ;;
 
     \?) usage ;;
     :)
@@ -334,6 +339,10 @@ if [ "${boot}" ]; then
       /usr/bin/sed -i "" -e "s/psk=.*\$/psk=\"${WIFI_PASSWORD}\"/" "${boot}/user-data"
     fi
 
+    if [ ! -z "${DOCKER_CMD}" ]; then
+      echo "Set DOCKER_SWARM_CMD=${DOCKER_CMD}"
+      /usr/bin/sed -i "" -e "s/.*DOCKER_SWARM_CMD_PLACE_HOLDER.*\$/  - '${DOCKER_CMD}'/" "${boot}/user-data"
+    fi
   fi
 
   # legacy: /boot/occidentalis.txt of old Hector release

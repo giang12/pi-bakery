@@ -1,0 +1,8 @@
+#!/bin/bash
+
+docker node ls -q | xargs docker node inspect \
+  -f '{{ .ID }} [{{ .Description.Hostname }}]: {{ .Description.Platform }} {{ .Description.Resources }}
+  leader? {{ .ManagerStatus }}
+  {{ .Spec.Availability }}.{{ .Spec.Role }} {{ .Status.Addr }} {{ .Status.State }}
+  {{ .Spec.Labels }}
+  '

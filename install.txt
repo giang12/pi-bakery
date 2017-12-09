@@ -6,19 +6,8 @@ ssh pirate@pi.ip
 password: pi
 
 ******
-
-# 1.To install or update nvm, you can use the install script using cURL:
-
-Before you can use n and any installed Node.js versions, you must open a new terminal tab/window or reload your shell initialization file.
-For instance, if your shell is Bash and you're 
+* to reload your shell initialization file.
 * on Linux, you'd use `. ~/.bashrc`; 
 * on OSX, you'd use `. ~/.bash_profile`; 
+
 the installer will tell you the specific file to reload on successful installation.
-
-# 1a.Verify installation
-
-command -v nvm
-
-# 2.To download, compile, and install the latest release of node, do this:
-
-nvm install node

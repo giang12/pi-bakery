@@ -1,8 +1,19 @@
 #!/bin/bash
 
 # flashing the img
-HOSTNAME="pi-baker"
+TOKEN="${1}"
+HOSTNAME="pi-baker-${2:-0}"
+
 SSID="***REMOVED***"
 PASS="***REMOVED***"
 
-./flash --hostname $HOSTNAME --ssid $SSID --password $PASS --als boot/als.sh --bootconf boot/config.txt --userdata boot/user-data $(ls | grep hypriotos.*.zip)
+if [ -z ${TOKEN} ]; then echo "TOKEN is unset, run \`docker swarm join-token (worker|manager)\` from master node to generate new token"; exit 1; fi
+
+echo "Building #${HOSTNAME} (づ ￣ ³￣)づ ⓈⓂⓄⓄⓉⒽ with token: ${TOKEN}"
+
+
+./flash --dockercmd "docker swarm join $TOKEN" --hostname "$HOSTNAME" --ssid "$SSID" --password "$PASS" --als boot/als.sh --bootconf boot/config.txt --userdata boot/user-data "$(ls | grep hypriotos.*.zip)"
+
+
+echo "#${HOSTNAME} (╯°□°)–︻╦╤─ – – –ready!"
+
