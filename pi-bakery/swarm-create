@@ -1,7 +1,14 @@
 #!/bin/bash
 
+# Controls
 export USER="pirate"
+export LEADER_NAME='pi-master'
+export FOLLOWER_PREFIX='pi-baker'
+##TODO FOLLOWER_POSTFIX managers/workers range
+export FORCE=false #re-create
+
 # generate swarm token
+# for <v1.2 swarm
 new_token() {
 	for i in $(seq 1 32); 
 		do echo -n $(echo "obase=16; $((`dd if=/dev/urandom count=1 2> /dev/null | cksum | cut -f1 -d" "`))" | bc);
@@ -33,25 +40,41 @@ rpc() {
 	fi
 
 	if [ -z $cmd ]; then
-		echo "cmdERR: missing cmd"
+		echo "rpcERR: missing cmd"
 		return 1;
 	fi
 
 	ssh $host "$(declare -f $cmd); $cmd";
 
 }
+########################################
+# swarm related funcs to exec remotely #
+########################################
+swarm_init() {
+	docker swarm init
+}
+swarm_manager_key() {
+	docker swarm join-token manager | grep -oE "\bdocker.*\b"
+}
+swarm_worker_key() {
+	docker swarm join-token worker | grep -oE "\bdocker.*\b"
+}
+# SWARM_JOIN_WARMUP & DOCKER_SWARM_INIT mux
+[ "$FORCE" = true ] && SWARM_JOIN_WARMUP="docker swarm leave --force" \
+					|| SWARM_JOIN_WARMUP=":"
+[ "$FORCE" = true ] && DOCKER_SWARM_INIT="docker swarm init --force-new-cluster" \
+					|| DOCKER_SWARM_INIT="docker swarm init"
 
 ##################################################
-# Swarm Create                                   #
+# Swarm Create Start                             #
 ##################################################
 echo "(づ ￣ ³￣)づ creating swarm..."
-echo -e "SWARM_TOKEN=            $SWARM_TOKEN \n"
+echo -e "SWARM_TOKEN=$SWARM_TOKEN \n"
 
 ###########################
 # leader                  #
 echo " ( ͡◉ ͜ʖ ͡◉) looking for swarm leader"
-LEADER_NAME='pi-master'
-LEADER_IP="192.168.1.10" #`getip ${LEADER_NAME}`
+LEADER_IP=`getip ${LEADER_NAME}`
 
 if [ -z $LEADER_IP ]; then
 	echo "learder $LEADER_NAME not found..make sure host is up!"
@@ -59,29 +82,19 @@ if [ -z $LEADER_IP ]; then
 fi
 
 echo "found $LEADER_NAME @${LEADER_IP}"
-
-
-swarm_init() {
-    docker swarm init
-}
-
-swarm_manager_key() {
-	docker swarm join-token manager | grep -oE "\bdocker.*\b"
-}
-swarm_worker_key() {
-	docker swarm join-token worker | grep -oE "\bdocker.*\b"
-}
-
 echo "(づ ￣ ³￣)づ executing commands on \`${LEADER_NAME}\`"
 echo -e "you may need to enter host password..\n"
 # TODO: SSH keys, passwordles
 
 # swarm init
 #rpc "$USER@$LEADER_IP" "swarm_init"
-# swarm join cmds
-MANAGER_JOIN_CMD="docker swarm join --token SWMTKN-1-32qdw256di8b0i1yhfferu6zdxhhaygrqrxfqi0rvnzpig7kyv-4fc0n8d1opyxt0bilmej9xlmk 192.168.1.10:2377" #`rpc "$USER@$LEADER_IP" "swarm_manager_key"`
-WORKER_JOIN_CMD="docker swarm join --token SWMTKN-1-32qdw256di8b0i1yhfferu6zdxhhaygrqrxfqi0rvnzpig7kyv-3geofxf47lzc5o9qbfb4po2xq 192.168.1.10:2377"
-#`rpc "$USER@$LEADER_IP" "swarm_worker_key"`
+ssh $USER@$LEADER_IP bash -c "'
+$SWARM_JOIN_WARMUP
+$DOCKER_SWARM_INIT
+'"
+# retrieve swarm join cmds
+MANAGER_JOIN_CMD=`rpc "$USER@$LEADER_IP" "swarm_manager_key"`
+WORKER_JOIN_CMD=`rpc "$USER@$LEADER_IP" "swarm_worker_key"`
 
 echo $MANAGER_JOIN_CMD
 echo $WORKER_JOIN_CMD
@@ -89,7 +102,6 @@ echo $WORKER_JOIN_CMD
 ###########################
 # followers               #
 echo " ( ͡◉ ͜ʖ ͡◉) looking for swarm citizens"
-FOLLOWER_PREFIX='pi-baker'
 
 manager() {
 	if [ -z "$MANAGER_JOIN_CMD" ]; then
@@ -105,7 +117,10 @@ manager() {
 		fi
 		echo "found $f_host @$f_ip.."
 		echo -e "attempting to join swarm as manager..."
-		ssh $USER@$f_ip bash -c "'$MANAGER_JOIN_CMD'"
+		ssh $USER@$f_ip bash -c "'
+		$SWARM_JOIN_WARMUP
+		$MANAGER_JOIN_CMD
+		'"
 	done;
 }
 
@@ -123,7 +138,10 @@ worker() {
 		fi
 		echo "found $f_host @$f_ip.."
 		echo -e "attempting to join swarm as worker..."
-		ssh $USER@$f_ip bash -c "'$WORKER_JOIN_CMD'"
+		ssh $USER@$f_ip bash -c "'
+		$SWARM_JOIN_WARMUP
+		$WORKER_JOIN_CMD
+		'"
 	done;
 }
 

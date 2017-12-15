@@ -1,0 +1,6 @@
+#!/bin/bash
+
+#https://github.com/moby/moby/issues/25432
+sudo service docker stop
+sudo rm -Rf /var/lib/docker/swarm
+sudo service docker start
