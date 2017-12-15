@@ -1,0 +1,133 @@
+#!/bin/bash
+
+export USER="pirate"
+# generate swarm token
+new_token() {
+	for i in $(seq 1 32); 
+		do echo -n $(echo "obase=16; $((`dd if=/dev/urandom count=1 2> /dev/null | cksum | cut -f1 -d" "`))" | bc);
+	done;
+	echo
+}
+export SWARM_TOKEN=`new_token`;
+
+# get hostip from hostname with nmap
+getip() {
+	local hostname=$1
+	if [ -z $hostname ]; then
+		echo "getipERR: missing hostname"
+		return 1;
+	fi
+	local hostip=`nmap "${hostname}.local" | grep -oE "\b([0-9]{1,3}\.){3}[0-9]{1,3}\b"`
+	echo $hostip
+}
+
+# rpc
+rpc() {
+
+	local host="$1"
+	local cmd="$2"
+
+	if [ -z $host ]; then
+		echo "rpcERR: missing host"
+		return 1;
+	fi
+
+	if [ -z $cmd ]; then
+		echo "cmdERR: missing cmd"
+		return 1;
+	fi
+
+	ssh $host "$(declare -f $cmd); $cmd";
+
+}
+
+##################################################
+# Swarm Create                                   #
+##################################################
+echo "(づ ￣ ³￣)づ creating swarm..."
+echo -e "SWARM_TOKEN=            $SWARM_TOKEN \n"
+
+###########################
+# leader                  #
+echo " ( ͡◉ ͜ʖ ͡◉) looking for swarm leader"
+LEADER_NAME='pi-master'
+LEADER_IP="192.168.1.10" #`getip ${LEADER_NAME}`
+
+if [ -z $LEADER_IP ]; then
+	echo "learder $LEADER_NAME not found..make sure host is up!"
+	exit 1;
+fi
+
+echo "found $LEADER_NAME @${LEADER_IP}"
+
+
+swarm_init() {
+    docker swarm init
+}
+
+swarm_manager_key() {
+	docker swarm join-token manager | grep -oE "\bdocker.*\b"
+}
+swarm_worker_key() {
+	docker swarm join-token worker | grep -oE "\bdocker.*\b"
+}
+
+echo "(づ ￣ ³￣)づ executing commands on \`${LEADER_NAME}\`"
+echo -e "you may need to enter host password..\n"
+# TODO: SSH keys, passwordles
+
+# swarm init
+#rpc "$USER@$LEADER_IP" "swarm_init"
+# swarm join cmds
+MANAGER_JOIN_CMD="docker swarm join --token SWMTKN-1-32qdw256di8b0i1yhfferu6zdxhhaygrqrxfqi0rvnzpig7kyv-4fc0n8d1opyxt0bilmej9xlmk 192.168.1.10:2377" #`rpc "$USER@$LEADER_IP" "swarm_manager_key"`
+WORKER_JOIN_CMD="docker swarm join --token SWMTKN-1-32qdw256di8b0i1yhfferu6zdxhhaygrqrxfqi0rvnzpig7kyv-3geofxf47lzc5o9qbfb4po2xq 192.168.1.10:2377"
+#`rpc "$USER@$LEADER_IP" "swarm_worker_key"`
+
+echo $MANAGER_JOIN_CMD
+echo $WORKER_JOIN_CMD
+
+###########################
+# followers               #
+echo " ( ͡◉ ͜ʖ ͡◉) looking for swarm citizens"
+FOLLOWER_PREFIX='pi-baker'
+
+manager() {
+	if [ -z "$MANAGER_JOIN_CMD" ]; then
+		echo "MANAGER_JOIN_CMD not found"
+		return 1
+	fi
+	for ((i = 0; i <= 1; i++)); do
+		local f_host="$FOLLOWER_PREFIX-$i"
+		local f_ip=`getip $f_host`
+		if [ -z $f_ip ]; then
+			echo "$f_host not found.."
+			continue
+		fi
+		echo "found $f_host @$f_ip.."
+		echo -e "attempting to join swarm as manager..."
+		ssh $USER@$f_ip bash -c "'$MANAGER_JOIN_CMD'"
+	done;
+}
+
+worker() {
+	if [ -z "$WORKER_JOIN_CMD" ]; then
+		echo "WORKER_JOIN_CMD not found"
+		return 1
+	fi
+	for ((i = 2; i <= 4; i++)); do
+		local f_host="$FOLLOWER_PREFIX-$i"
+		local f_ip=`getip $f_host`
+		if [ -z $f_ip ]; then
+			echo "$f_host not found.."
+			continue
+		fi
+		echo "found $f_host @$f_ip.."
+		echo -e "attempting to join swarm as worker..."
+		ssh $USER@$f_ip bash -c "'$WORKER_JOIN_CMD'"
+	done;
+}
+
+echo "(づ ￣ ³￣)づ joining managers..."
+manager
+echo "(づ ￣ ³￣)づ joining workers..."
+worker

@@ -1,0 +1,6 @@
+#!/bin/bash
+echo "(づ ￣ ³￣)づ rebalancing services..."
+for service in `docker service ls -q`; do
+	echo ${service}
+	docker service update --with-registry-auth  --detach=true --force ${service}
+done

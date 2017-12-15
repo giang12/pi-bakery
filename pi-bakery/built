@@ -23,7 +23,7 @@ fi
 echo "Building #${HOSTNAME} (づ ￣ ³￣)づ ⓈⓂⓄⓄⓉⒽ with token: ${TOKEN}"
 
 
-./flash --dockercmd "docker swarm join $TOKEN $MASTER_ADD" --hostname "$HOSTNAME" --ssid "$SSID" --password "$PASS" --als boot/als.sh --bootconf boot/config.txt --userdata boot/user-data "$(ls | grep hypriotos.*.zip)"
+./flash --dockercmd "docker swarm join --token $TOKEN $MASTER_ADD" --hostname "$HOSTNAME" --ssid "$SSID" --password "$PASS" --als boot/als.sh --bootconf boot/config.txt --userdata boot/user-data "$(ls | grep hypriotos.*.zip)"
 
 
 echo "#${HOSTNAME} (╯°□°)–︻╦╤─ – – –ready to join master ${MASTER_ADD}!"

@@ -5,9 +5,36 @@ nmap -sP $(ipconfig getifaddr en0)/24 | grep pi-baker
 ssh pirate@pi.ip
 password: pi
 
+Make sure wireless power management is off:
+sudo iwconfig wlan0
+
+by:
+sudo iw dev wlan0 set power_save off
+
 ******
 * to reload your shell initialization file.
 * on Linux, you'd use `. ~/.bashrc`; 
 * on OSX, you'd use `. ~/.bash_profile`; 
+* the installer will tell you the specific file to reload on successful installation.
+*******
 
-the installer will tell you the specific file to reload on successful installation.
+*******
+* grafana OpenFaaS dash board id 3434
+*******
+
+
+##TODO:
+## cadvisor on master
+
+sudo docker run \
+  --volume=/:/rootfs:ro \
+  --volume=/var/run:/var/run:rw \
+  --volume=/sys:/sys:ro \
+  --volume=/var/lib/docker/:/var/lib/docker:ro \
+  --volume=/dev/disk/:/dev/disk:ro \
+  --publish=8080:8080 \
+  --detach=true \
+  --name=cadvisor \
+armhfbuild/cadvisor:master
+
+
