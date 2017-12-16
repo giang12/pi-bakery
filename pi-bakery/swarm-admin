@@ -1,0 +1,102 @@
+#!/bin/bash
+# https://docs.docker.com/engine/swarm/admin_guide/#force-the-swarm-to-rebalance
+
+# Controls
+export USER="pirate"
+## declare an config array 
+declare -a formation=(
+	"pi-master" 
+    "pi-baker-0" "pi-baker-1"
+    "pi-baker-2" "pi-baker-3" "pi-baker-4"
+)
+# utils
+# 
+# rpc
+rpc() {
+
+	local host="$1"
+	local cmd="$2"
+
+	if [ -z $host ]; then
+		echo "rpcERR: missing host"
+		return 1;
+	fi
+
+	if [ -z $cmd ]; then
+		echo "rpcERR: missing cmd"
+		return 1;
+	fi
+
+	ssh $host "$(declare -f $cmd); $cmd";
+
+}
+# get hostip from hostname with nmap
+getip() {
+	local hostname=$1
+	if [ -z $hostname ]; then
+		echo "getipERR: missing hostname"
+		return 1;
+	fi
+	local hostip=`nmap "${hostname}.local" | grep -oE "\b([0-9]{1,3}\.){3}[0-9]{1,3}\b"`
+	echo $hostip
+}
+
+########################################
+# swarm related funcs to exec remotely #
+########################################
+#
+# https://github.com/moby/moby/issues/25432
+# Steps 1-3 from https://docs.docker.com/engine/swarm/admin_guide/#recover-from-disaster
+# ./swarm-create --force to recreate swarm in steps 4-8
+hard_restart() {
+	sudo service docker stop
+	sudo rm -Rf /var/lib/docker/swarm
+	#sudo rm -Rf /run/docker.* #bug 1.2
+	sudo service docker start
+}
+
+# TODO:
+# https://github.com/moby/moby/issues/25432#issuecomment-304639288
+# https://docs.docker.com/engine/swarm/admin_guide/#back-up-the-swarm
+sort_restart() {
+	# using systemd
+	sudo systemctl stop docker
+	
+	# make sure to make a backup if you delete something wrong
+	sudo cp -ar /var/lib/docker/swarm/ /tmp/swarm.bak
+	
+	sudo nano /var/lib/docker/swarm/state.json
+	# state.json will look something like this:
+	# [{"node_id":"nodeidofhealthynode","addr":"123.123.123.123:2377"},
+	# {"node_id":"nodeidofunhealthynode","addr":"123.123.123.124:2377"}]
+	
+	# You want to delete any entries to unhealthy nodes. so just one healthy manager node is left
+	# [{"node_id":"nodeidofhealthynode","addr":"123.123.123.123:2377"}]
+	# sed .....
+	# 
+	# lastly restart docker
+	sudo systemctl start docker
+}
+####################################
+
+restart_host(){
+	local f_host="$1"
+	local f_ip=`getip $f_host`
+	if [ -z $f_ip ]; then
+		echo "$f_host not found.."
+		return 1
+	fi
+	echo "found $f_host @$f_ip.."
+	echo -e "attempting to restart..."
+	rpc $USER@$f_ip "hard_restart"
+}
+restart_all() {
+	## now loop through the above array
+	for node in "${formation[@]}"; do
+		echo "$node"
+	   # or do whatever with individual element of the array
+		restart_host "$node"
+	done
+}
+
+restart_all

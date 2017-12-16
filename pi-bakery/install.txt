@@ -1,5 +1,5 @@
 # nmap ip
-nmap -sP $(ipconfig getifaddr en0)/24 | grep pi-baker
+./bin/getip.sh hostname.local
 
 # login
 ssh pirate@pi.ip

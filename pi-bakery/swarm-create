@@ -5,7 +5,7 @@ export USER="pirate"
 export LEADER_NAME='pi-master'
 export FOLLOWER_PREFIX='pi-baker'
 ##TODO FOLLOWER_POSTFIX managers/workers range
-export FORCE=false #re-create
+export FORCE=true #re-create
 
 # generate swarm token
 # for <v1.2 swarm

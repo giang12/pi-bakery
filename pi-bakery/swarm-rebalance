@@ -1,4 +1,9 @@
 #!/bin/bash
+
+
+# https://docs.docker.com/engine/swarm/admin_guide/#force-the-swarm-to-rebalance
+# Can only run on manager nodes!
+
 echo "(づ ￣ ³￣)づ rebalancing services..."
 for service in `docker service ls -q`; do
 	echo ${service}
