@@ -10,6 +10,10 @@ declare -a formation=(
     "pi-baker-2" "pi-baker-3" "pi-baker-4"
     "pi-baker-canary"
 )
+declare -a workers=(
+#    "pi-baker-2" "pi-baker-3" "pi-baker-4"
+    "pi-baker-canary"
+)
 # utils
 # 
 # rpc
@@ -51,7 +55,7 @@ getip() {
 # ./swarm-create --force to recreate swarm in steps 4-8
 hard_restart() {
 	sudo service docker stop
-	sudo rm -Rf /var/lib/docker/swarm
+	sudo rm -Rf /var/lib/docker
 	sudo rm -Rf /run/docker.* #bug 1.2
 	sudo service docker start
 }
@@ -109,5 +113,13 @@ ping_hosts() {
 }
 
 #
-restart_host pi-baker-canary.local
-#ping_hosts
+worker_join(){
+	docker swarm join --token SWMTKN-1-4cv3hud52wnaq8nanvu843havhqnhymu5zmf2licjxuxr1eyfv-58p03llwvw3mz2aa7uzmhicsi 192.168.1.14:2377
+}
+
+
+for node in "${workers[@]}"; do
+	restart_host "$node.local"
+	rpc "$USER@$node.local" worker_join   
+done
+
