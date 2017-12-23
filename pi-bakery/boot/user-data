@@ -13,7 +13,7 @@ manage_etc_hosts: true
 
 # You could modify this for your own user information
 users:
-  - name: pirate # wtf this has to be pirate ???
+  - name: lucy # wtf this has to be pirate ???
     gecos: "Lucy Pirate"
     sudo: ALL=(ALL) NOPASSWD:ALL
     shell: /bin/bash
@@ -22,6 +22,8 @@ users:
     lock_passwd: false
     ssh_pwauth: true
     chpasswd: { expire: false }
+    ssh-authorized-keys:
+      - ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDDeZ6XIDS+md/AmmsVLPIlWdvVzoHpuH6aFWUElQjMQS2chC20pxvNHs99/cXKQtdYrpF/WxA+h5sEiXERMnv6YB1NlFdq3kQU2VGeyuoqs21YDaEWWgjBSlp603a13u3tRvjq9T8sj9IKfqKJaSmtEmTQU3FYSLbxDk7r9RiocuzifZjvLoRUcUjDeA5fDqgByVn8b7/smtfTDcREGuWLXwXBxtRU21wlVqw5PycTyOtCtSOG44Ge5FcAOq2timbayl5JuTQK4v+miFGN4FQJRc5+2HDmrd3AmQwXigzn36b6xr+bqCqByC8qVRq2J871jJzYQL6P+mTyyHXcleN9
 
 # # Set the locale of the system
 locale: "en_US.UTF-8"
@@ -73,17 +75,8 @@ write_files:
 # These commands will be ran once reboot
 bootcmd:
   # Pickup the hostname changes
-#  - 'systemctl restart avahi-daemon'
+ - 'systemctl restart avahi-daemon'
 
-  # Activate WiFi interface
-#  - 'ifup wlan0'
-
-  # Make sure wireless power management is off
- # - 'iw dev wlan0 set power_save off'
-
-  # joining the swarm as worker|manager
-  #   - docker swarm join --token $(docker swarm join-token -q worker|manager) ip:port
-  #<DOCKER_SWARM_CMD_PLACE_HOLDER> 
 
 # These commands will be ran once on first boot only
 runcmd:
@@ -92,9 +85,6 @@ runcmd:
 
   # Activate WiFi interface
   - 'ifup wlan0'
-
-  # Make sure wireless power management is off
- # - 'iw dev wlan0 set power_save off'
 
   # "als"
   - 'cp "boot/als.sh" "/etc/profile.d"'

@@ -1,3 +1,20 @@
 (づ ￣ ³￣)づ 
 
 ( ͡◉ ͜ʖ ͡◉)
+
+The key fingerprint is:
+SHA256:f698Co2wG/VzqMsspSRkgWQrNsBZW8aAMpmyohN7s20 Giang@Giangs-MacBook-Pro.local
+The key's randomart image is:
++---[RSA 2048]----+
+|oo++=+           |
+|*= .=o.          |
+|oo+..  .         |
+|+. o  o          |
+|oo   o  S .      |
+|+ o   . .=.+ .   |
+| o +   ooo+ * .  |
+|  . E   o= = +.  |
+|   .    ..=.++.  |
++----[SHA256]-----+
+
+ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDDeZ6XIDS+md/AmmsVLPIlWdvVzoHpuH6aFWUElQjMQS2chC20pxvNHs99/cXKQtdYrpF/WxA+h5sEiXERMnv6YB1NlFdq3kQU2VGeyuoqs21YDaEWWgjBSlp603a13u3tRvjq9T8sj9IKfqKJaSmtEmTQU3FYSLbxDk7r9RiocuzifZjvLoRUcUjDeA5fDqgByVn8b7/smtfTDcREGuWLXwXBxtRU21wlVqw5PycTyOtCtSOG44Ge5FcAOq2timbayl5JuTQK4v+miFGN4FQJRc5+2HDmrd3AmQwXigzn36b6xr+bqCqByC8qVRq2J871jJzYQL6P+mTyyHXcleN9
