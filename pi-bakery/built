@@ -5,8 +5,8 @@ HOSTNAME="pi-baker-${1:-0}"
 TOKEN="${2}"
 MASTER_ADD="${3}"
 
-SSID="wifi-ssid"
-PASS="wifi-pass"
+SSID="***REMOVED***"
+PASS="***REMOVED***"
 
 # if [ -z ${TOKEN} ]; then 
 # 	echo "TOKEN is unset, run \`docker swarm join-token (worker|manager)\` from master node to generate new token"; 
@@ -28,10 +28,11 @@ echo "Building #${HOSTNAME} (づ ￣ ³￣)づ ⓈⓂⓄⓄⓉⒽ"
 	--als boot/als.sh \
 	--bootconf boot/config.txt \
 	--userdata boot/user-data \
+	--ssid "$SSID" \
+	--password "$PASS" \
 	"$(ls | grep hypriotos.*.zip)"
+
 	# --dockercmd "docker swarm join --token $TOKEN $MASTER_ADD" \
-	# --ssid "$SSID" \
-	# --password "$PASS" \
 	# 
 
 echo "#${HOSTNAME} (╯°□°)–︻╦╤─ – – –ready to join master ${MASTER_ADD}!"

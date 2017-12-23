@@ -7,11 +7,14 @@ PASS="***REMOVED***"
 
 echo "Building #${HOSTNAME} ┌∩┐(◟‿◞◟‿◞)┌∩┐.."
 
-./flash --dockercmd "docker swarm init" \
-	--hostname "$HOSTNAME" --ssid "$SSID" \
-	--password "$PASS" --als boot/als.sh \
+./flash \
+	--hostname "$HOSTNAME" \
+	--ssid "$SSID" \
+	--password "$PASS" \
+	--als boot/als.sh \
 	--bootconf boot/config.txt \
 	--userdata boot/user-data \
+	--dockercmd "docker swarm init" \
 	$(ls | grep hypriotos.*.zip)
 
 echo "#${HOSTNAME} (╯°□°)–︻╦╤─ – – –ready!"

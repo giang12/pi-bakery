@@ -2,7 +2,7 @@
 # https://docs.docker.com/engine/swarm/admin_guide/#force-the-swarm-to-rebalance
 
 # Controls
-export USER="pirate"
+export USER="lucy"
 ## declare an config array 
 declare -a formation=(
 	"pi-master" 
@@ -99,5 +99,15 @@ restart_all() {
 		restart_host "$node"
 	done
 }
+
+ping_hosts() {
+	for node in "${formation[@]}"; do
+		echo -e "\n\r (づ ￣ ³￣)づ pinging $node"
+	   # or do whatever with individual element of the array
+		ping -c 1 "${node}.local"
+	done
+}
+
 #
 restart_host pi-baker-canary.local
+#ping_hosts

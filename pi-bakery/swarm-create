@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Controls
-export USER="pirate"
+export USER="lucy"
 export LEADER_NAME='pi-master'
 export FOLLOWER_PREFIX='pi-baker'
 ##TODO FOLLOWER_POSTFIX managers/workers range
