@@ -1,0 +1,38 @@
+#!/bin/bash
+# Controls
+export USER="lucy"
+## declare an config array 
+declare -a formation=(
+	"pi-master" 
+    "pi-baker-0" "pi-baker-1"
+    "pi-baker-2" "pi-baker-3" "pi-baker-4"
+    "pi-baker-canary"
+)
+declare -a managers=(
+    "pi-baker-0" "pi-baker-1"
+)
+declare -a workers=(
+    "pi-baker-2" "pi-baker-3" "pi-baker-4"
+    "pi-baker-canary"
+)
+
+#####################
+is_alive_ping() {
+	local f_host=$1
+	ping -c 1 $f_host > /dev/null
+	if [ $? -eq 0 ]; then
+		echo "$f_host is UP"
+		return 0
+	fi
+	
+	echo "$f_host is DOWN"
+	return 1
+}
+
+check_hosts() {
+	for node in "${formation[@]}"; do
+		is_alive_ping "${node}.local"
+	done
+}
+
+check_hosts

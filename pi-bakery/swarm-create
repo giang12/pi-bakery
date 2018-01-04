@@ -3,9 +3,22 @@
 # Controls
 export USER="lucy"
 export LEADER_NAME='pi-master'
-export FOLLOWER_PREFIX='pi-baker'
-##TODO FOLLOWER_POSTFIX managers/workers range
 export FORCE=true #re-create
+
+## declare an config array 
+declare -a formation=(
+	"pi-master" 
+    "pi-baker-0" "pi-baker-1"
+    "pi-baker-2" "pi-baker-3" "pi-baker-4"
+    "pi-baker-canary"
+)
+declare -a managers=(
+    "pi-baker-0" "pi-baker-1"
+)
+declare -a workers=(
+    "pi-baker-2" "pi-baker-3" "pi-baker-4"
+    "pi-baker-canary"
+)
 
 # generate swarm token
 # for <v1.2 swarm
@@ -24,8 +37,10 @@ getip() {
 		echo "getipERR: missing hostname"
 		return 1;
 	fi
-	local hostip=`nmap "${hostname}.local" | grep -oE "\b([0-9]{1,3}\.){3}[0-9]{1,3}\b"`
+	local hostip=`nmap "${hostname}" | grep -oE "\b([0-9]{1,3}\.){3}[0-9]{1,3}\b"`
 	echo $hostip
+	echo
+	echo
 }
 
 # rpc
@@ -62,8 +77,8 @@ swarm_worker_key() {
 # SWARM_JOIN_WARMUP & DOCKER_SWARM_INIT mux
 [ "$FORCE" = true ] && SWARM_JOIN_WARMUP="docker swarm leave --force" \
 					|| SWARM_JOIN_WARMUP=":"
-[ "$FORCE" = true ] && DOCKER_SWARM_INIT="docker swarm init --force-new-cluster" \
-					|| DOCKER_SWARM_INIT="docker swarm init"
+[ "$FORCE" = true ] && DOCKER_SWARM_INIT="docker swarm init --advertise-addr wlan0 --force-new-cluster" \
+					|| DOCKER_SWARM_INIT="docker swarm init --advertise-addr wlan0"
 
 ##################################################
 # Swarm Create Start                             #
@@ -74,20 +89,19 @@ echo -e "SWARM_TOKEN=$SWARM_TOKEN \n"
 ###########################
 # leader                  #
 echo " ( ͡◉ ͜ʖ ͡◉) looking for swarm leader"
-LEADER_IP=`getip ${LEADER_NAME}`
+LEADER_IP=`getip "${LEADER_NAME}.local"`
 
 if [ -z $LEADER_IP ]; then
-	echo "learder $LEADER_NAME not found..make sure host is up!"
+	echo "leader $LEADER_NAME not found..make sure host is up!"
 	exit 1;
 fi
 
 echo "found $LEADER_NAME @${LEADER_IP}"
 echo "(づ ￣ ³￣)づ executing commands on \`${LEADER_NAME}\`"
 echo -e "you may need to enter host password..\n"
-# TODO: SSH keys, passwordles
+# unless have SSH keys installed for passwordless login
 
 # swarm init
-#rpc "$USER@$LEADER_IP" "swarm_init"
 ssh $USER@$LEADER_IP bash -c "'
 $SWARM_JOIN_WARMUP
 $DOCKER_SWARM_INIT
@@ -108,8 +122,8 @@ manager() {
 		echo "MANAGER_JOIN_CMD not found"
 		return 1
 	fi
-	for ((i = 0; i <= 1; i++)); do
-		local f_host="$FOLLOWER_PREFIX-$i"
+	for node in "${managers[@]}"; do
+		local f_host="$node.local"
 		local f_ip=`getip $f_host`
 		if [ -z $f_ip ]; then
 			echo "$f_host not found.."
@@ -129,8 +143,8 @@ worker() {
 		echo "WORKER_JOIN_CMD not found"
 		return 1
 	fi
-	for ((i = 2; i <= 4; i++)); do
-		local f_host="$FOLLOWER_PREFIX-$i"
+	for node in "${workers[@]}"; do
+		local f_host="$node.local"
 		local f_ip=`getip $f_host`
 		if [ -z $f_ip ]; then
 			echo "$f_host not found.."
@@ -147,5 +161,6 @@ worker() {
 
 echo "(づ ￣ ³￣)づ joining managers..."
 manager
+
 echo "(づ ￣ ³￣)づ joining workers..."
 worker

@@ -1,4 +1,5 @@
 #!/bin/bash
+# Can only run on manager nodes!
 
 docker node ls -q | xargs docker node inspect \
   -f '{{ .ID }} [{{ .Description.Hostname }}]: {{ .Description.Platform }} {{ .Description.Resources }}

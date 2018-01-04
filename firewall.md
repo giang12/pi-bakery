@@ -1,6 +1,3 @@
-docker swarm join-token worker | grep docker*.
-
-
 # Darwin
 
 pfctl

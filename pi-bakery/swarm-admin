@@ -10,8 +10,11 @@ declare -a formation=(
     "pi-baker-2" "pi-baker-3" "pi-baker-4"
     "pi-baker-canary"
 )
+declare -a managers=(
+    "pi-baker-0" "pi-baker-1"
+)
 declare -a workers=(
-#    "pi-baker-2" "pi-baker-3" "pi-baker-4"
+    "pi-baker-2" "pi-baker-3" "pi-baker-4"
     "pi-baker-canary"
 )
 # utils
@@ -83,7 +86,6 @@ sort_restart() {
 	sudo systemctl start docker
 }
 ####################################
-
 restart_host(){
 	local f_host="$1"
 	local f_ip=`getip $f_host`
@@ -104,22 +106,38 @@ restart_all() {
 	done
 }
 
-ping_hosts() {
-	for node in "${formation[@]}"; do
-		echo -e "\n\r (づ ￣ ³￣)づ pinging $node"
-	   # or do whatever with individual element of the array
-		ping -c 1 "${node}.local"
-	done
+create_key() {
+	local key_name="${1:-lucy}"
+	echo "for $name under .keys/"
+	ssh-keygen -t rsa -b 4096 -f ".keys/$key_name"
 }
 
+add_key_to_host() {
+	local key_name="${2:-lucy}"
+	local f_host=$1
+	local f_ip=`getip $f_host`
+	if [ -z $f_ip ]; then
+		echo "$f_host not found.."
+		return 1
+	fi
+
+	echo "adding $key_name to $f_host @$f_ip"
+
+	ssh-copy-id -i ".keys/$key_name" "$USER@$f_ip"
+}
 #
 worker_join(){
-	docker swarm join --token SWMTKN-1-4cv3hud52wnaq8nanvu843havhqnhymu5zmf2licjxuxr1eyfv-58p03llwvw3mz2aa7uzmhicsi 192.168.1.14:2377
+	
+docker swarm join --token SWMTKN-1-3ffcflksvr89q3wqebsmof9i0izivfbkdw41rkzxshtbfukoe7-b5njmugr0tvu5mxomk9z5w0ht 192.168.1.14:2377
 }
 
+manager_join(){
+	
+docker swarm join --token SWMTKN-1-3ffcflksvr89q3wqebsmof9i0izivfbkdw41rkzxshtbfukoe7-3y4evmih06zo3fgkv4k8tptqg 192.168.1.14:2377
+}
 
-for node in "${workers[@]}"; do
-	restart_host "$node.local"
-	rpc "$USER@$node.local" worker_join   
-done
+# create_key
+# for node in "${formation[@]}"; do
+# 	add_key_to_host "$node.local"
+# done
 
