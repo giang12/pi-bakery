@@ -2,9 +2,12 @@
 
 # flashing the img
 HOSTNAME="pi-master"
-#SSID="wifi-name"
-#PASS="wifi-pass"
-
+# SSID="wifi-name"
+# PASS="wifi-pass"
+# Add these options if want wifi
+# --ssid "$SSID" \
+# --password "$PASS" \
+# 
 echo "Building #${HOSTNAME} ┌∩┐(◟‿◞◟‿◞)┌∩┐.."
 
 ./flash \
@@ -12,9 +15,8 @@ echo "Building #${HOSTNAME} ┌∩┐(◟‿◞◟‿◞)┌∩┐.."
 	--als boot/als.sh \
 	--bootconf boot/config.txt \
 	--userdata boot/user-data \
-	# --ssid "$SSID" \
-	# --password "$PASS" \
 	--dockercmd "docker swarm init" \
 	$(ls | grep *.img.zip)
+
 
 echo "#${HOSTNAME} (╯°□°)–︻╦╤─ – – –ready!"

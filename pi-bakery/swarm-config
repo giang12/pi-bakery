@@ -1,0 +1,21 @@
+#!/bin/bash
+# Configs
+declare USER="lucy" #as defined in boot/user-data
+
+declare LEADER_NAME="pi-master" #as defined in built scripts
+
+declare -a formation=(
+	"pi-master" 
+    "pi-baker-0" "pi-baker-1"
+    "pi-baker-2" "pi-baker-3" "pi-baker-4"
+    "pi-baker-canary"
+)
+
+declare -a managers=(
+    "pi-baker-0" "pi-baker-1"
+)
+
+declare -a workers=(
+    "pi-baker-2" "pi-baker-3" "pi-baker-4"
+    "pi-baker-canary"
+)

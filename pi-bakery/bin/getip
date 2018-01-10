@@ -6,7 +6,7 @@ if [ -z $HOSTNAME ]; then
 	echo "getipERR: missing HOSTNAME"
 	exit 1;
 fi
-hostip=`nmap "${HOSTNAME}" | grep -oE "\b([0-9]{1,3}\.){3}[0-9]{1,3}\b"`
+hostip=`nmap "${HOSTNAME}" | grep -w "report for" |  grep -oE "\b([0-9]{1,3}\.){3}[0-9]{1,3}\b"`
 
 if [ -z $hostip ]; then
 	echo "getipERR: $HOSTNAME not found.."
@@ -14,3 +14,4 @@ if [ -z $hostip ]; then
 fi
 
 echo $hostip
+exit 0;

@@ -1,20 +1,8 @@
 #!/bin/bash
-# Controls
-export USER="lucy"
-## declare an config array 
-declare -a formation=(
-	"pi-master" 
-    "pi-baker-0" "pi-baker-1"
-    "pi-baker-2" "pi-baker-3" "pi-baker-4"
-    "pi-baker-canary"
-)
-declare -a managers=(
-    "pi-baker-0" "pi-baker-1"
-)
-declare -a workers=(
-    "pi-baker-2" "pi-baker-3" "pi-baker-4"
-    "pi-baker-canary"
-)
+#
+# getting swarm config
+my_dir="$(dirname "$0")"
+source "$my_dir/swarm-config"
 
 #####################
 is_alive_ping() {
