@@ -2,19 +2,19 @@
 
 # flashing the img
 HOSTNAME="pi-master"
-SSID="***REMOVED***"
-PASS="***REMOVED***"
+#SSID="wifi-name"
+#PASS="wifi-pass"
 
 echo "Building #${HOSTNAME} ┌∩┐(◟‿◞◟‿◞)┌∩┐.."
 
 ./flash \
 	--hostname "$HOSTNAME" \
-	--ssid "$SSID" \
-	--password "$PASS" \
 	--als boot/als.sh \
 	--bootconf boot/config.txt \
 	--userdata boot/user-data \
+	# --ssid "$SSID" \
+	# --password "$PASS" \
 	--dockercmd "docker swarm init" \
-	$(ls | grep hypriotos.*.zip)
+	$(ls | grep *.img.zip)
 
 echo "#${HOSTNAME} (╯°□°)–︻╦╤─ – – –ready!"
