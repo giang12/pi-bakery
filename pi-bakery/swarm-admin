@@ -4,38 +4,6 @@
 my_dir="$(dirname "$0")"
 source "$my_dir/swarm-config"
 
-# utils
-# 
-# rpc
-rpc() {
-
-	local host="$1"
-	local cmd="$2"
-
-	if [ -z $host ]; then
-		echo "rpcERR: missing host"
-		return 1;
-	fi
-
-	if [ -z $cmd ]; then
-		echo "rpcERR: missing cmd"
-		return 1;
-	fi
-
-	ssh $host "$(declare -f $cmd); $cmd";
-
-}
-# get hostip from hostname with nmap
-getip() {
-	local hostname=$1
-	if [ -z $hostname ]; then
-		echo "getipERR: missing hostname"
-		return 1;
-	fi
-	local hostip=`nmap "${hostname}" | grep -oE "\b([0-9]{1,3}\.){3}[0-9]{1,3}\b"`
-	echo $hostip
-}
-
 ########################################
 # swarm related funcs to exec remotely #
 ########################################
@@ -44,10 +12,17 @@ getip() {
 # Steps 1-3 from https://docs.docker.com/engine/swarm/admin_guide/#recover-from-disaster
 # ./swarm-create --force to recreate swarm in steps 4-8
 hard_restart() {
-	sudo service docker stop
+
+	sudo systemctl stop docker
+
+
+	# make sure to make a backup if you delete something wrong
+	sudo cp -ar /var/lib/docker /tmp/docker.bak
+
 	sudo rm -Rf /var/lib/docker
 	sudo rm -Rf /run/docker.* #bug 1.2
-	sudo service docker start
+	
+	sudo systemctl start docker
 }
 
 # TODO:
@@ -75,31 +50,24 @@ sort_restart() {
 ####################################
 restart_host(){
 	local f_host="$1"
-	local f_ip=`getip $f_host`
+	local f_ip=`$my_dir/bin/getip $f_host`
 	if [ -z $f_ip ]; then
 		echo "$f_host not found.."
 		return 1
 	fi
 	echo "found $f_host @$f_ip.."
 	echo -e "attempting to restart..."
-	rpc $USER@$f_ip "hard_restart"
+
+	ssh $USER@$f_ip "$(declare -f hard_restart); hard_restart";
 }
+
 restart_all() {
 	## now loop through the above array
 	for node in "${formation[@]}"; do
-		echo "$node"
+		echo "$node.local"
 	   # or do whatever with individual element of the array
-		restart_host "$node"
+		restart_host "$node.local"
 	done
 }
 
-
-worker_join(){
-	
-docker swarm join --token SWMTKN-1-3ffcflksvr89q3wqebsmof9i0izivfbkdw41rkzxshtbfukoe7-b5njmugr0tvu5mxomk9z5w0ht 192.168.1.14:2377
-}
-
-manager_join(){
-	
-docker swarm join --token SWMTKN-1-3ffcflksvr89q3wqebsmof9i0izivfbkdw41rkzxshtbfukoe7-3y4evmih06zo3fgkv4k8tptqg 192.168.1.14:2377
-}
+restart_all

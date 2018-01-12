@@ -1,11 +1,17 @@
 #!/bin/bash
 
+# getting swarm config
+my_dir="$(dirname "$0")"
+source "$my_dir/swarm-config"
 
 # https://docs.docker.com/engine/swarm/admin_guide/#force-the-swarm-to-rebalance
 # Can only run on manager nodes!
-
+rebalance() {
 echo "(づ ￣ ³￣)づ rebalancing services..."
 for service in `docker service ls -q`; do
 	echo ${service}
 	docker service update --with-registry-auth  --detach=true --force ${service}
 done
+}
+
+ssh $USER@$LEADER_NAME.local "$(declare -f rebalance); rebalance"

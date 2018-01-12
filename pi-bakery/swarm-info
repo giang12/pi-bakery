@@ -1,9 +1,18 @@
 #!/bin/bash
-# Can only run on manager nodes!
+# getting swarm config
+my_dir="$(dirname "$0")"
+source "$my_dir/swarm-config"
 
-docker node ls -q | xargs docker node inspect \
-  -f '{{ .ID }} [{{ .Description.Hostname }}]: {{ .Description.Platform }} {{ .Description.Resources }}
-  leader? {{ .ManagerStatus }}
-  {{ .Spec.Availability }}.{{ .Spec.Role }} {{ .Status.Addr }} {{ .Status.State }}
-  {{ .Spec.Labels }}
-  '
+# Can only run on manager nodes!
+info() {
+	docker node ls -q | xargs docker node inspect \
+	  -f '{{ .ID }} [{{ .Description.Hostname }}]: {{ .Description.Platform }} {{ .Description.Resources }}
+	  leader? {{ .ManagerStatus }}
+	  {{ .Spec.Availability }}.{{ .Spec.Role }} {{ .Status.Addr }} {{ .Status.State }}
+	  {{ .Spec.Labels }}
+	  '
+	  
+	docker service ls
+}
+
+ssh $USER@$LEADER_NAME.local "$(declare -f info); info"
