@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Controls
-export FORCE=false #re-create
+export FORCE=true #re-create
 
 # getting swarm config
 my_dir="$(dirname "$0")"
@@ -32,8 +32,8 @@ swarm_worker_key() {
 # SWARM_JOIN_WARMUP & DOCKER_SWARM_INIT mux
 [ "$FORCE" = true ] && SWARM_JOIN_WARMUP="docker swarm leave --force" \
 					|| SWARM_JOIN_WARMUP=":"
-[ "$FORCE" = true ] && DOCKER_SWARM_INIT="docker swarm init --advertise-addr wlan0 --force-new-cluster" \
-					|| DOCKER_SWARM_INIT="docker swarm init --advertise-addr wlan0"
+[ "$FORCE" = true ] && DOCKER_SWARM_INIT="docker swarm init --force-new-cluster" \
+					|| DOCKER_SWARM_INIT="docker swarm init"
 
 ##################################################
 # Swarm Create Start                             #
