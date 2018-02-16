@@ -1,10 +1,10 @@
 nmap -sP $(ipconfig getifaddr en0)/24 | grep pi-master
 
 # nmap ip
-./bin/getip.sh hostname.local
+./bin/getip.sh hostname.domain #pi-master
 
 # login
-ssh pirate@pi.ip
+ssh lucy@pi.ip
 password: pi
 
 Make sure wireless power management is off:

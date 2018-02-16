@@ -19,7 +19,7 @@ is_alive_ping() {
 
 check_hosts() {
 	for node in "${formation[@]}"; do
-		is_alive_ping "${node}.local"
+		is_alive_ping "${node}"
 	done
 }
 

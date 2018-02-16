@@ -44,15 +44,15 @@ echo -e "SWARM_TOKEN=$SWARM_TOKEN \n"
 ###########################
 # leader                  #
 echo " ( ͡◉ ͜ʖ ͡◉) looking for swarm leader"
-LEADER_IP=`$my_dir/bin/getip "${LEADER_NAME}.local"`
+LEADER_IP=`$my_dir/bin/getip "${LEADER}"`
 
 if [ -z $LEADER_IP ]; then
-	echo "leader $LEADER_NAME not found..make sure host is up!"
+	echo "leader $LEADER not found..make sure host is up!"
 	exit 1;
 fi
 
-echo "found $LEADER_NAME @${LEADER_IP}"
-echo "(づ ￣ ³￣)づ executing commands on \`${LEADER_NAME}\`"
+echo "found $LEADER @${LEADER_IP}"
+echo "(づ ￣ ³￣)づ executing commands on \`${LEADER}\`"
 echo -e "you may need to enter host password..\n"
 # unless have SSH keys installed for passwordless login
 
@@ -78,7 +78,7 @@ manager() {
 		return 1
 	fi
 	for node in "${managers[@]}"; do
-		local f_host="$node.local"
+		local f_host="$node"
 		local f_ip=`$my_dir/bin/getip $f_host`
 		if [ -z $f_ip ]; then
 			echo "$f_host not found.."
@@ -99,7 +99,7 @@ worker() {
 		return 1
 	fi
 	for node in "${workers[@]}"; do
-		local f_host="$node.local"
+		local f_host="$node"
 		local f_ip=`$my_dir/bin/getip $f_host`
 		if [ -z $f_ip ]; then
 			echo "$f_host not found.."

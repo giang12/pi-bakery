@@ -2,20 +2,20 @@
 # Configs
 declare USER="lucy" #as defined in boot/user-data
 
-declare LEADER_NAME="pi-master" #as defined in built scripts
+declare LEADER="pi-master.local" #as defined in built scripts
 
 declare -a formation=(
-	"pi-master" 
-    "pi-baker-0" "pi-baker-1"
-    "pi-baker-2" "pi-baker-3" "pi-baker-4"
-    "pi-baker-canary"
+	"pi-master.local" 
+    "pi-baker-0.local" "pi-baker-1.local"
+    "pi-baker-2.local" "pi-baker-3.local" "pi-baker-4.local"
+    "pi-baker-canary.local"
 )
 
 declare -a managers=(
-    "pi-baker-0" "pi-baker-1"
+    "pi-baker-0.local" "pi-baker-1.local"
 )
 
 declare -a workers=(
-    "pi-baker-2" "pi-baker-3" "pi-baker-4"
-    "pi-baker-canary"
+    "pi-baker-2.local" "pi-baker-3.local" "pi-baker-4.local"
+    "pi-baker-canary.local"
 )

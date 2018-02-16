@@ -64,9 +64,9 @@ restart_host(){
 restart_all() {
 	## now loop through the above array
 	for node in "${formation[@]}"; do
-		echo "$node.local"
+		echo "$node"
 	   # or do whatever with individual element of the array
-		restart_host "$node.local"
+		restart_host "$node"
 	done
 }
 

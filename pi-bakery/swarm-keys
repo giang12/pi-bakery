@@ -26,5 +26,5 @@ add_key_to_host() {
 #
 create_key
 for node in "${formation[@]}"; do
-	add_key_to_host "$node.local"
+	add_key_to_host "$node"
 done

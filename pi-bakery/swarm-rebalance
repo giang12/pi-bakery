@@ -14,4 +14,4 @@ for service in `docker service ls -q`; do
 done
 }
 
-ssh $USER@$LEADER_NAME.local "$(declare -f rebalance); rebalance"
+ssh $USER@$LEADER "$(declare -f rebalance); rebalance"

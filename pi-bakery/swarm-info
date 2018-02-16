@@ -15,4 +15,4 @@ info() {
 	docker service ls
 }
 
-ssh $USER@$LEADER_NAME.local "$(declare -f info); info"
+ssh $USER@$LEADER "$(declare -f info); info"
