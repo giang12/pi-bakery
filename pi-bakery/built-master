@@ -14,6 +14,7 @@ echo "Building #${HOSTNAME} ┌∩┐(◟‿◞◟‿◞)┌∩┐.."
 	--hostname "$HOSTNAME" \
 	--als boot/als.sh \
 	--bootconf boot/config.txt \
+	--metadata boot/meta-data \
 	--userdata boot/user-data \
 	--dockercmd "docker swarm init" \
 	$(ls | grep *.img.zip)
