@@ -1,17 +1,74 @@
 #!/bin/bash
 #
+# controls
+# set -e #good for pipelining
+
+CONFIG_FILE="swarm-config"
+FORCE=false
+VERBOSE=false
+
+usage()
+{
+  cat << EOF
+usage: $0 [options] function_name [args]
+
+OPTIONS:
+  --help|-h       Show this message
+  --force|-f      Force create new
+  --config|-c     path to swarm-config (default="./swarm-config")
+  --verbose|-v    verbose mode
+
+EOF
+  exit 1
+}
+
+# Parse argument
+# translate long options to short
+for arg
+do
+  delim=""
+  case "${arg}" in
+    --help) args="${args}-h ";;
+    --config) args="${args}-c ";;
+    --force) args="${args}-f ";;
+    --verbose) args="${args}-v ";;
+
+    # pass through anything else
+    *) [[ "${arg:0:1}" == "-" ]] || delim="\""
+      args="${args}${delim}${arg}${delim} ";;
+  esac
+done
+# reset the translated args
+eval set -- "$args"
+# now we can process with getopt
+while getopts ":hc:vf" opt; do
+  case $opt in
+    h)  usage ;;
+    c)  CONFIG_FILE=$OPTARG ;;
+    f)  FORCE=true ;;
+	v)	VERBOSE=true ;;
+    \?) usage ;;
+    :)
+      echo "option -$OPTARG requires an argument"
+      usage
+    ;;
+  esac
+done
+shift $((OPTIND -1))
+
 # getting swarm config
 my_dir="$(dirname "$0")"
-source "$my_dir/swarm-config"
+source "$my_dir/$CONFIG_FILE"
 
 ########################################
 # swarm related funcs to exec remotely #
+# DO NOT RUN THESE ON YOUR HOST..	   #
 ########################################
 #
 # https://github.com/moby/moby/issues/25432
 # Steps 1-3 from https://docs.docker.com/engine/swarm/admin_guide/#recover-from-disaster
 # ./swarm-create --force to recreate swarm in steps 4-8
-hard_restart() {
+__hard_restart() {
 
 	sudo systemctl stop docker
 
@@ -28,7 +85,7 @@ hard_restart() {
 # TODO:
 # https://github.com/moby/moby/issues/25432#issuecomment-304639288
 # https://docs.docker.com/engine/swarm/admin_guide/#back-up-the-swarm
-sort_restart() {
+__sort_restart() {
 	# using systemd
 	sudo systemctl stop docker
 	
@@ -47,27 +104,64 @@ sort_restart() {
 	# lastly restart docker
 	sudo systemctl start docker
 }
-####################################
-restart_host(){
-	local f_host="$1"
-	local f_ip=`$my_dir/bin/getip $f_host`
-	if [ -z $f_ip ]; then
-		echo "$f_host not found.."
-		return 1
-	fi
-	echo "found $f_host @$f_ip.."
-	echo -e "attempting to restart..."
 
-	ssh $USER@$f_ip "$(declare -f hard_restart); hard_restart";
+####################################
+# HOST func                        #
+###################################
+restart(){
+	local f_host="$1"
+	echo -e "attempting to hard restart $f_host.."
+	if ! $FORCE; then
+		read -n1 -r -p "Press space to continue, anything else to quit..." key
+		echo
+		if ! [ "$key" = '' ]; then
+		    # Anything else pressed, do whatever else.
+			return 1
+		fi
+	fi
+
+	echo "restarting $f_host @$f_ip.."
+
+	local f_ip=`$my_dir/bin/getip $f_host`
+	if ! `$my_dir/bin/ipvalid $f_ip`; then
+	  echo "FAIL ($f_ip)"
+	  return 1
+	 fi
+
+	# dangerous stuff
+	ssh $USER@$f_ip "$(declare -f __hard_restart); __hard_restart";
 }
 
 restart_all() {
-	## now loop through the above array
+
+	# now loop through the above array
 	for node in "${formation[@]}"; do
-		echo "$node"
+		echo "👻 $node 👻"
 	   # or do whatever with individual element of the array
-		restart_host "$node"
+		restart "$node"
 	done
 }
 
-restart_all
+list(){
+	if $VERBOSE; then
+		echo "`declare -f`"
+	else
+		echo "`declare -F | grep  -oE "\-f.*\b" | sed -n 's/-f/\*/p'`"
+	fi
+}
+
+#######################################
+# main loop, # has to be at tne end   #
+# since bash parse sequentially       #
+if declare -f "$1" > /dev/null; then
+	func=$1
+	shift 1 #the rest of the args
+	# call
+	$func "$@"
+	exit 0
+else
+	echo "func $1 not found"
+	echo "list of available funcs:"
+	list
+	exit 1
+fi

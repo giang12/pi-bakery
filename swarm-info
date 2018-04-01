@@ -12,7 +12,7 @@ info() {
 	  {{ .Spec.Labels }}
 	  '
 	  
-	docker service ls
+	docker service ps $(docker service ls -q)
 }
 
 ssh $USER@$LEADER "$(declare -f info); info"
