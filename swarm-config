@@ -7,8 +7,8 @@ declare LEADER="pi-master.local" #as defined in built scripts
 declare -a formation=(
 	"pi-master.local" 
     "pi-baker-0.local" "pi-baker-1.local"
-    "pi-baker-2.local" "pi-baker-3.local" "pi-baker-4.local"
-    "pi-baker-canary.local"
+    "pi-baker-2.local" "pi-baker-3.local"
+    "pi-baker-x.local" "pi-baker-y.local"
 )
 
 declare -a managers=(
@@ -16,6 +16,6 @@ declare -a managers=(
 )
 
 declare -a workers=(
-    "pi-baker-2.local" "pi-baker-3.local" "pi-baker-4.local"
-    "pi-baker-canary.local"
+    "pi-baker-2.local" "pi-baker-3.local"
+    "pi-baker-x.local" "pi-baker-y.local"
 )

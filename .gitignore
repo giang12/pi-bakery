@@ -1,8 +1,6 @@
-pi-bakery/.keys/*
-pi-bakery/*.zip
-pi-bakery/hypriotos-rpi-v1.7.1.img.zip
-
 .secrets
+.keys
+*.zip
 
 ## built output dirs
 dist
