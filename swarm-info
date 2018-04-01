@@ -6,13 +6,14 @@ source "$my_dir/swarm-config"
 # Can only run on manager nodes!
 info() {
 	docker node ls -q | xargs docker node inspect \
-	  -f '{{ .ID }} [{{ .Description.Hostname }}]: {{ .Description.Platform }} {{ .Description.Resources }}
+	  -f '{{ .ID }} [{{ .Description.Hostname }}]: {{ .Description.Platform }}
+	  NanoCPUs={{ .Description.Resources.NanoCPUs  }} | MemoryBytes={{ .Description.Resources.MemoryBytes  }}
 	  leader? {{ .ManagerStatus }}
-	  {{ .Spec.Availability }}.{{ .Spec.Role }} {{ .Status.Addr }} {{ .Status.State }}
+	  {{ .Spec.Role }} {{ .Spec.Availability }} @{{ .Status.Addr }} state={{ .Status.State }}
 	  {{ .Spec.Labels }}
 	  '
 	  
-	docker service ps $(docker service ls -q)
+	docker service ps $(docker service ls -q) --filter "desired-state=Running"
 }
 
 ssh $USER@$LEADER "$(declare -f info); info"
