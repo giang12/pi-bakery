@@ -5,7 +5,7 @@ declare USER="lucy" #as defined in boot/user-data
 declare LEADER="pi-master.local" #as defined in built scripts
 
 declare -a formation=(
-	"pi-master.local" 
+    "pi-master.local" 
     "pi-baker-0.local" "pi-baker-1.local"
     "pi-baker-2.local" "pi-baker-3.local"
     "pi-baker-x.local" "pi-baker-y.local"

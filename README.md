@@ -1,6 +1,6 @@
 # pi-bakery
 
-\*[Download](https://blog.hypriot.com/downloads/) target image into [`pi-bakery`](https://github.com/giang12/pi-bakery/tree/master/pi-bakery) directory (with extention `.img.zip`)
+\*[Download](https://blog.hypriot.com/downloads/) target image into [`pi-bakery`](https://github.com/giang12/pi-bakery) directory (with extention `.img.zip`)
 
 # 1. Creating SD cards for the Pi-Bakery
 
@@ -26,7 +26,7 @@ flash 6 SD cards with hostname `pi-baker-[0:4]` & 1 `pi-baker-canary`
 ...repeat
 ```
 
-\*update [`swarm-config`](https://github.com/giang12/pi-bakery/blob/master/pi-bakery/swarm-config)
+\*update [`swarm-config`](https://github.com/giang12/pi-bakery/blob/master/swarm-config)
 
 # 2. boot, ping, ssh
 
