@@ -17,3 +17,6 @@ info() {
 }
 
 ssh $USER@$LEADER "$(declare -f info); info"
+
+# TODO
+# https://medium.com/@iaincollins/how-to-run-a-command-on-every-node-in-a-docker-swarm-cluster-60b7f398d1ec
