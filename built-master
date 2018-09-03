@@ -1,7 +1,9 @@
-#!/bin/bash
+''''#!/bin/bash
 
 # flashing the img
 HOSTNAME="pi-master"
+
+VERSION="v1.7.1"
 # SSID="wifi-name"
 # PASS="wifi-pass"
 # Add these options if want wifi
@@ -17,7 +19,8 @@ echo "Building #${HOSTNAME} ┌∩┐(◟‿◞◟‿◞)┌∩┐.."
 	--metadata boot/meta-data \
 	--userdata boot/user-data \
 	--dockercmd "docker swarm init" \
-	$(ls | grep *.img.zip)
+	"https://github.com/hypriot/image-builder-rpi/releases/download/$VERSION/hypriotos-rpi-$VERSION.img.zip"
+	#$(ls | grep *.img.zip)
 
 
 echo "#${HOSTNAME} (╯°□°)–︻╦╤─ – – –ready!"
