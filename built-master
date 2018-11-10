@@ -3,7 +3,7 @@
 # flashing the img
 HOSTNAME="pi-master"
 
-VERSION="v1.7.1"
+VERSION="v1.9.0"
 # SSID="wifi-name"
 # PASS="wifi-pass"
 # Add these options if want wifi

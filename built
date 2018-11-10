@@ -5,7 +5,7 @@ HOSTNAME="pi-baker-${1:-0}"
 TOKEN="${2}"
 MASTER_ADD="${3}"
 
-VERSION="v1.7.1"
+VERSION="v1.9.0"
 
 # SSID="wifi-name"
 # PASS="wifi-pass"
