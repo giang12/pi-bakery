@@ -2,20 +2,20 @@
 # Configs
 declare USER="lucy" #as defined in boot/user-data
 
-declare LEADER="pi-master.local" #as defined in built scripts
+declare LEADER="kubepileader.local" #as defined in built scripts
 
 declare -a formation=(
-    "pi-master.local" 
-    "pi-baker-0.local" "pi-baker-1.local"
-    "pi-baker-2.local" "pi-baker-3.local"
-    "pi-baker-x.local" "pi-baker-y.local"
+    "kubepileader.local" 
+    "kubepi001.local" "kubepi002.local"
+    "kubepi003.local" "kubepi004.local"
+    "kubepi-x.local" "kubepi-y.local"
 )
 
 declare -a managers=(
-    "pi-baker-0.local" "pi-baker-1.local"
+	"kubepi-x.local" "kubepi-y.local"
 )
 
 declare -a workers=(
-    "pi-baker-2.local" "pi-baker-3.local"
-    "pi-baker-x.local" "pi-baker-y.local"
+    "kubepi001.local" "kubepi002.local"
+    "kubepi003.local" "kubepi004.local"
 )
