@@ -2,20 +2,20 @@
 # Configs
 declare USER="lucy" #as defined in boot/user-data
 
-declare LEADER="kubepileader.local" #as defined in built scripts
+declare LEADER="mission.local" #as defined in built scripts
 
 declare -a formation=(
-    "kubepileader.local" 
-    "kubepi001.local" "kubepi002.local"
-    "kubepi003.local" "kubepi004.local"
-    "kubepi-x.local" "kubepi-y.local"
+    "mission.local" 
+    "excelsior.local" "clarion.local"
+    "balmy.local" "geary.local"
+    "divisadero.local" "valencia.local"
 )
 
 declare -a managers=(
-	"kubepi-x.local" "kubepi-y.local"
+	"divisadero.local" "valencia.local"
 )
 
 declare -a workers=(
-    "kubepi001.local" "kubepi002.local"
-    "kubepi003.local" "kubepi004.local"
+    "excelsior.local" "clarion.local"
+    "balmy.local" "geary.local"
 )

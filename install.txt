@@ -1,4 +1,4 @@
-nmap -sP $(ipconfig getifaddr en0)/24 | grep pi-master
+nmap -snP $(ipconfig getifaddr en0)/24 | grep pi-master
 
 # nmap ip
 ./bin/getip.sh hostname.domain #pi-master
