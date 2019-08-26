@@ -4,7 +4,7 @@
 # Stefan Scherer - scherer_stefan@icloud.com
 #
 # Linux initial version by Matt Williams - matt@matthewkwilliams.com
-# SLA script & docker cmd version by Zen - nggiang12@gmail.com
+# script & docker cmd version by Zen - nggiang12@gmail.com
 # MIT License
 
 set -eo pipefail
@@ -34,39 +34,13 @@ OPTIONS:
   --force|-f      Force flash without security prompt (for automation)
   --userdata|-u   Copy this cloud-init file to /boot/user-data
   --metadata|-m   Copy this cloud-init file to /boot/meta-data
-  --als|-a        SLA script
+  --file|-F       Copy this file to /boot
+  --script|-S     Copy Custom script to /boot
   --dockercmd|-D  Docker command to run on boot
 
 If no image is specified, the script will try to configure an existing
 image. This is useful to try several configuration without the need to
 rewrite the image every time.
-
-For HypriotOS < v1.7.0:
-
-The config file device-init.yaml should look like
-
-hostname: black-pearl
-wifi:
-  interfaces:
-    wlan0:
-      ssid: "MyNetwork"
-      password: "secret_password"
-
-For Raspberry Pi until Hector release:
-
-The config file occidentalis.txt should look like
-
-# hostname for your Hypriot Raspberry Pi:
-hostname=hypriot-pi
-
-# basic wireless networking options:
-wifi_ssid=SSID
-wifi_password=12345
-
-The boot config file config.txt has name/value pairs such as:
-max_usb_current=1
-
-For HypriotOS v1.7.0 and higher:
 
 The config file user-data config file is the cloud-init configuration.
 See http://cloudinit.readthedocs.io/en/0.7.9/ for more details.
@@ -91,9 +65,10 @@ do
     --force) args="${args}-f ";;
     --userdata) args="${args}-u ";;
     --metadata) args="${args}-m ";;
-    --als) args="${args}-a ";;
+    --file) args="${args}-F ";; 
+    --script) args="${args}-S ";;
     --dockercmd) args="${args}-D ";;
-
+    --ip) args="${args}-i ";;
     # pass through anything else
     *) [[ "${arg:0:1}" == "-" ]] || delim="\""
       args="${args}${delim}${arg}${delim} ";;
@@ -102,7 +77,7 @@ done
 # reset the translated args
 eval set -- "$args"
 # now we can process with getopt
-while getopts ":hc:n:s:p:C:l:d:fu:m:a:D:" opt; do
+while getopts ":hc:n:s:p:C:l:d:fu:m:F:S:D:i:" opt; do
   case $opt in
     h)  usage ;;
     c)  CONFIG_FILE=$OPTARG ;;
@@ -115,8 +90,10 @@ while getopts ":hc:n:s:p:C:l:d:fu:m:a:D:" opt; do
     f)  FORCE=$OPTARG ;;
     u)  USER_DATA=$OPTARG ;;
     m)  META_DATA=$OPTARG ;;
-    a)  ALS_SH=$OPTARG ;;
+    F)  FILE=$OPTARG ;;
+    S)  SCRIPT=$OPTARG ;;
     D)  DOCKER_CMD=$OPTARG ;;
+    i)  STATIC_IP=$OPTARG ;;
 
     \?) usage ;;
     :)
@@ -165,6 +142,17 @@ case "${OSTYPE}" in
       true
     }
 
+    validate_yaml() {   
+      set +e    
+      if _RET=$(ruby -e "require 'yaml';YAML.load_file('$1')" 2>&1); then   
+        set -e    
+        return 0    
+      fi    
+      echo "File $1 is not a valid YAML file!"    
+      echo "$_RET" | grep -v "from "    
+      set -e    
+      false   
+    }
     # Try to identify the most likely device that the user will use to
     # write an image to.
     #
@@ -333,12 +321,17 @@ case "${OSTYPE}" in
       fi
     }
 
+    validate_yaml() {   
+      ## NO-OP in Linux   
+      true    
+    }   
+
     # Try to identify the most likely device that the user will use to
     # write an image to.
     #
     # @return _RET the name of the device to use
     autodetect_device() {
-      _RET=$(lsblk -n -o NAME -d | grep mmcblk)
+      _RET=$(lsblk -p -n -o NAME -d | grep mmcblk || true)
     }
 
     # Show in the standard output the devices that are a likely
@@ -487,28 +480,36 @@ fi
 
 check_requirements
 
-if [ ! -z "${USER_DATA}" ]; then
+if [ -n "${USER_DATA}" ]; then  
   if [ ! -f "${USER_DATA}" ]; then
     echo "Cloud-init file ${USER_DATA} not found!"
     exit 10
   fi
+  validate_yaml "${USER_DATA}"  
 fi
 
-if [ ! -z "${META_DATA}" ]; then
+if [ -n "${META_DATA}" ]; then
   if [ ! -f "${META_DATA}" ]; then
     echo "Cloud-init file ${META_DATA} not found!"
     exit 10
   fi
 fi
+    
+if [ -n "${FILE}" ]; then
+  if [ ! -f "${FILE}" ]; then
+    echo "File ${FILE} not found!"
+    exit 10
+  fi
+fi
 
-if [ ! -z "${BOOT_CONF}" ]; then
+if [ -n "${BOOT_CONF}" ]; then
   if [ ! -f "${BOOT_CONF}" ]; then
     echo "File ${BOOT_CONF} not found!"
     exit 10
   fi
 fi
 
-if [ ! -z "${CONFIG_FILE}" ]; then
+if [ -n "${CONFIG_FILE}" ]; then
   if [ ! -f "${CONFIG_FILE}" ]; then
     echo "File ${CONFIG_FILE} not found!"
     exit 10
@@ -566,7 +567,6 @@ if [[ -z $CONFIGURE_ONLY ]] ; then
       echo "Use ${image}"
     fi
   fi
-
 fi
 
 auto=true
@@ -640,7 +640,7 @@ if [[ -z $CONFIGURE_ONLY ]] ; then
   else
     echo "No 'pv' command found, so no progress available."
     echo "Press CTRL+T if you want to see the current info of dd command."
-    sudo dd bs=1M "if=${image}" "of=${rawdisk}"
+    sudo dd bs=$bs_size "if=${image}" "of=${rawdisk}"
   fi
 
   wait_for_disk "${disk}"
@@ -654,12 +654,7 @@ echo "Mounting ${disk} to customize..."
 mount_boot_disk "${disk}" "${boot}"
 
 # customize for first boot
- #custom als
- if [ -f "${ALS_SH}" ]; then
-    echo "Copying ${ALS_SH} to ${boot}/als.sh ..."
-    cp "${ALS_SH}"  "${boot}/als.sh"
-    chmod +x "${boot}/als.sh"
- fi
+
  #legacy device-init
  if [ -f "${CONFIG_FILE}" ]; then
     if [[ "${CONFIG_FILE}" == *"occi"* ]]; then
@@ -669,41 +664,52 @@ mount_boot_disk "${disk}" "${boot}"
       echo "Copying ${CONFIG_FILE} to ${boot}/device-init.yaml ..."
       cp "${CONFIG_FILE}"  "${boot}/device-init.yaml"
     fi
-  fi
+fi
 
-  if [[ -f "${BOOT_CONF}" ]]; then
-    echo "Copying ${BOOT_CONF} to ${boot}/config.txt ..."
-    cp "${BOOT_CONF}" "${boot}/config.txt"
-  fi
+if [[ -f "${BOOT_CONF}" ]]; then
+  echo "Copying ${BOOT_CONF} to ${boot}/config.txt ..."
+  cp "${BOOT_CONF}" "${boot}/config.txt"
+fi
 
-  if [ -f "${USER_DATA}" ]; then
-    echo "Copying cloud-init ${USER_DATA} to ${boot}/user-data ..."
-    cp "${USER_DATA}" "${boot}/user-data"
-  fi
+if [ -f "${USER_DATA}" ]; then
+  echo "Copying cloud-init ${USER_DATA} to ${boot}/user-data ..."
+  cp "${USER_DATA}" "${boot}/user-data"
+fi
 
-  if [ -f "${META_DATA}" ]; then
-    echo "Copying cloud-init ${META_DATA} to ${boot}/meta-data ..."
-    cp "${META_DATA}" "${boot}/meta-data"
-  fi
+if [ -f "${META_DATA}" ]; then
+  echo "Copying cloud-init ${META_DATA} to ${boot}/meta-data ..."
+  cp "${META_DATA}" "${boot}/meta-data"
+fi
 
+if [ -f "${FILE}" ]; then   
+  echo "Copying file ${FILE} to ${boot}/ ..."   
+  cp "${FILE}" "${boot}/"   
+fi    
+ #custom SCRIPT
+if [ -f "${SCRIPT}" ]; then
+  echo "Copying ${SCRIPT} to ${boot}/bin/ ..."
+  mkdir "${boot}/bin"
+  cp "${SCRIPT}"  "${boot}/bin/"
+  chmod -R +x "${boot}/bin/"
+fi
 
 if [ -f "${boot}/device-init.yaml" ]; then
   echo "Setting device-init"
-  if [ ! -z "${SD_HOSTNAME}" ]; then
+  if [ -n "${SD_HOSTNAME}" ]; then
     echo "  Set hostname=${SD_HOSTNAME}"
     sed_i -e "s/.*hostname:.*\$/hostname: ${SD_HOSTNAME}/" "${boot}/device-init.yaml"
   fi
-  if [ ! -z "${WIFI_SSID}" ]; then
+  if [ -n "${WIFI_SSID}" ]; then
     echo "  Set wlan0/ssid=${WIFI_SSID}"
     sed_i -e "s/.*wlan0:.*\$/    wlan0:/" "${boot}/device-init.yaml"
     sed_i -e "s/.*ssid:.*\$/      ssid: \"${WIFI_SSID}\"/" "${boot}/device-init.yaml"
   fi
-  if [ ! -z "${WIFI_PASSWORD}" ]; then
+  if [ -n "${WIFI_PASSWORD}" ]; then
     echo "  Set wlan0/password=${WIFI_PASSWORD}"
     sed_i -e "s/.*wlan0:.*\$/    wlan0:/" "${boot}/device-init.yaml"
     sed_i -e "s/.*password:.*\$/      password: \"${WIFI_PASSWORD}\"/" "${boot}/device-init.yaml"
   fi
-  if [ ! -z "${CLUSTERLAB}" ]; then
+  if [ -n "${CLUSTERLAB}" ]; then
     echo "  Set Cluster-Lab/run_on_boot=${CLUSTERLAB}"
     sed_i -e "s/.*run_on_boot.*\$/    run_on_boot: \"${CLUSTERLAB}\"/" "${boot}/device-init.yaml"
   fi
@@ -712,25 +718,35 @@ fi
 # cloud-init
 if [ -f "${boot}/user-data" ]; then
 
-  if [ ! -z "${SD_HOSTNAME}" ]; then
+  if [ -n "${SD_HOSTNAME}" ]; then
     echo "Set hostname=${SD_HOSTNAME}"
     sed_i -e "s/.*hostname:.*\$/hostname: ${SD_HOSTNAME}/" "${boot}/user-data"
   fi
 
-  if [ ! -f "${boot}/meta-data" ]; then
+  if [ -n "${STATIC_IP}" ]; then
+    echo "Set ip_address=${STATIC_IP}"
+    sed_i -e "s/.*ip_address=.*\$/ip_address=: ${STATIC_IP}/" "${boot}/user-data"
+  else
+    echo "Missing IP addr, try --ip opt?"
+    exit 1
+  fi
+
+  STATIC_IP
+
+  if [ -n "${boot}/meta-data" ]; then
     echo "Creating empty meta-data"
     touch "${boot}/meta-data"
   fi
-  if [ ! -z "${WIFI_SSID}" ]; then
+  if [ -n "${WIFI_SSID}" ]; then
     echo "Set wlan0/ssid=${WIFI_SSID}"
     /usr/bin/sed -i "" -e "s/ssid=.*\$/ssid=\"${WIFI_SSID}\"/" "${boot}/user-data"
   fi
-  if [ ! -z "${WIFI_PASSWORD}" ]; then
+  if [ -n "${WIFI_PASSWORD}" ]; then
     echo "Set wlan0/psk=${WIFI_PASSWORD}"
     /usr/bin/sed -i "" -e "s/psk=.*\$/psk=\"${WIFI_PASSWORD}\"/" "${boot}/user-data"
   fi
 
-  if [ ! -z "${DOCKER_CMD}" ]; then
+  if [ -n "${DOCKER_CMD}" ]; then
     echo "Set DOCKER_SWARM_CMD=${DOCKER_CMD}"
     /usr/bin/sed -i "" -e "s/.*DOCKER_SWARM_CMD_PLACE_HOLDER.*\$/  - '${DOCKER_CMD}'/" "${boot}/user-data"
   fi
@@ -739,15 +755,15 @@ fi
 # legacy: /boot/occidentalis.txt of old Hector release
 if [ -f "${boot}/occidentalis.txt" ]; then
   echo "Setting Occidentalis"
-  if [ ! -z "${SD_HOSTNAME}" ]; then
+  if [ -n "${SD_HOSTNAME}" ]; then
     echo "  Set hostname=${SD_HOSTNAME}"
     sed_i -e "s/.*hostname.*=.*\$/hostname=${SD_HOSTNAME}/" "${boot}/occidentalis.txt"
   fi
-  if [ ! -z "${WIFI_SSID}" ]; then
+  if [ -n "${WIFI_SSID}" ]; then
     echo "Set wifi_ssid=${WIFI_SSID}"
     sed_i -e "s/.*wifi_ssid.*=.*\$/wifi_ssid=${WIFI_SSID}/" "${boot}/occidentalis.txt"
   fi
-  if [ ! -z "${WIFI_PASSWORD}" ]; then
+  if [ -n "${WIFI_PASSWORD}" ]; then
     echo "Set wifi_password=${WIFI_PASSWORD}"
     sed_i -e "s/.*wifi_password.*=.*\$/wifi_password=${WIFI_PASSWORD}/" "${boot}/occidentalis.txt"
   fi

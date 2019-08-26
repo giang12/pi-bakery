@@ -2,20 +2,20 @@
 # Configs
 declare USER="lucy" #as defined in boot/user-data
 
-declare LEADER="mission.local" #as defined in built scripts
+declare LEADER="mission" #as defined in built scripts
 
 declare -a formation=(
-    "mission.local" 
-    "excelsior.local" "clarion.local"
-    "balmy.local" "geary.local"
-    "divisadero.local" "valencia.local"
+    "mission" 
+    "excelsior" "clarion"
+    "balmy" "geary"
+    "divisadero" "valencia"
 )
 
 declare -a managers=(
-	"divisadero.local" "valencia.local"
+	"divisadero" "valencia"
 )
 
 declare -a workers=(
-    "excelsior.local" "clarion.local"
-    "balmy.local" "geary.local"
+    "excelsior" "clarion"
+    "balmy" "geary"
 )
